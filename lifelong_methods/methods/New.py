@@ -551,7 +551,7 @@ class Model(BaseMethod):
         loss_divide = self.loss_divide(latent_feat, y, offset_1)
     #    loss_1 = self.bce(output / self.temperature, target)
         
-        loss_2 =  (loss_1.item() / (loss_divide.item() * self.l_divide + 1)) * loss_divide 
+        loss_2 =  (loss_1.item() * loss_divide) / (loss_divide.item() * self.l_divide + 1)  
      #   loss_ranking_value = self.loss_ranking(latent_feat, y, offset_1)
     #    loss_3 = loss_ranking_value * (loss_1.item() / (loss_ranking_value.item() * self.l_divide + 1))
         loss = loss_1  + loss_2 #+ loss_3  #+ loss_2# + loss_3 #+ loss_2
