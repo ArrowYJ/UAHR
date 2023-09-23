@@ -125,7 +125,6 @@ class DDPSameclassSampler(torch.utils.data.distributed.DistributedSampler):
         super(DDPSameclassSampler, self).__init__(dataset, num_replicas, rank, shuffle)
         self.batch_size = batch_size
         self.epoch = epoch
-        self.length = len(self.dataset)
 
     def __iter__(self):
         # deterministically shuffle based on epoch
@@ -160,7 +159,7 @@ class DDPSameclassSampler(torch.utils.data.distributed.DistributedSampler):
             yield batch
 
     def __len__(self):
-        return (len(self.length)+self.batch_size-1)//self.batch_size
+        return (len(self.dataset)+self.batch_size-1)//self.batch_size
 
 
 class SameClassBatcherSampler(Sampler):
