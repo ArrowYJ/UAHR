@@ -1,0 +1,2 @@
+cd ./results
+rm -rf ./*
