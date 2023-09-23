@@ -5,6 +5,7 @@
 3.运行数据：（1）将imagenet数据集所在位置，赋值给运行脚本的 --dataset_path "./data/imagenet" 参数。
            （2）文件 \New_MutilNode\iirc\datasets_loader.py 中的 313 行到 344 行为获取imagenet数据集地址以及读取对应目录和样本数据，目前代码按照非压缩的方式来读取。
            （3）同上一个文件的 418 行到 448 行，为相同的情况。
+           （4）建议将imagenet或者imagenet.zip的文件夹 软连接 到 NEW_MultiNode/experiments/data/ 下。
 
 4.运行结果： NEW_MultiNode/experiments/results   （已修正为只由 master 节点负责记录和输出）
 
