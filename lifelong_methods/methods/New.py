@@ -126,7 +126,7 @@ class Model(BaseMethod):
             cur_pro = torch.cat((cur_pro, c_x), 0)
         
         if new_class_num <= 1:
-            return torch.tensor(0.00001).to(device)
+            return torch.tensor(0.0000001).to(device)
 
         has_common_father = False
         father_and_son = {-2:[-1,-1]}
@@ -134,23 +134,29 @@ class Model(BaseMethod):
             temp_relation = torch.sum(self.label_relationship, 0)
             father_index = torch.where(temp_relation > 1.0)[0]
             if (len(father_index) > 0):
-                has_common_father = True
                 father_iter = 0
                 for index in father_index:
                     son_class = torch.where(self.label_relationship[:, index] == 1)[0]
-                    father_and_son[new_class_num + father_iter] = son_class
-                    father_iter = father_iter + 1
+                    
                     temp_father_proto = torch.tensor([]).to(device)
+                    temp_son_num = 0
                     for p in son_class:
                         p_index = torch.where(y[:, offset1 + p] == 1)[0]
                         if len(p_index) == 0:
                             continue
                         p_x = x[p_index, :]
                         temp_father_proto = torch.cat((temp_father_proto, p_x), 0)
-
-                    temp_father_proto = temp_father_proto.view(-1, self.latent_dim)
-                    temp_father_proto = temp_father_proto.mean(0)
-                    cur_pro = torch.cat((cur_pro, temp_father_proto), 0)
+                        temp_son_num = temp_son_num + 1
+                    if temp_son_num <= 1:
+                        continue
+                    else:
+                        has_common_father = True
+                        father_and_son[new_class_num + father_iter] = son_class
+                        father_iter = father_iter + 1
+                        
+                        temp_father_proto = temp_father_proto.view(-1, self.latent_dim)
+                        temp_father_proto = temp_father_proto.mean(0)
+                        cur_pro = torch.cat((cur_pro, temp_father_proto), 0)
         
         try:
             cur_proto = cur_pro.view(-1, self.latent_dim)
@@ -175,7 +181,10 @@ class Model(BaseMethod):
                     temp_near_loss = temp_near_loss * 0.01
             #    temp_near_loss = self.cal_rbf_single_without_rbf(cur_proto[i, :], cur_proto[index[i], :])
                 near_fea_loss = near_fea_loss + temp_near_loss
-        return (near_fea_loss / new_class_num)
+        if near_fea_loss == 0:
+            return torch.tensor(0.0000001).to(device)
+        else:
+            return (near_fea_loss / new_class_num)
     
     def dis_mm_without_rbf(self, x):
         left = x.clone()
