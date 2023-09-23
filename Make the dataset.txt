@@ -1,0 +1,11 @@
+1.运行环境：从 Docker Hub上面 pull：docker pull arrowyj/my_iirc:V3090
+
+2.运行脚本： NEW_MultiNode/experiments/train_NEW_MultiNode.sh 文件
+
+3.运行数据：（1）将imagenet数据集所在位置，赋值给运行脚本的 --dataset_path "./data/imagenet" 参数。
+           （2）文件 \New_MutilNode\iirc\datasets_loader.py 中的 313 行到 344 行为获取imagenet数据集地址以及读取对应目录和样本数据，目前代码按照非压缩的方式来读取。
+           （3）同上一个文件的 418 行到 448 行，为相同的情况。
+
+4.运行结果： NEW_MultiNode/experiments/results   （已修正为只由 master 节点负责记录和输出）
+
+5.GPU卡的使用：CUDA_VISIBLE_DEVICES=0,1,2,3 中所可见的卡即为全部要用的卡，程序已设定每张卡的batchsize为128个样本，无需再修正。

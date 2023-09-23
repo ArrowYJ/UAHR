@@ -310,9 +310,10 @@ def _load_iirc_imagenet(root: str = ".", intask_valid_train_ratio: float = 0.04,
     datasets = {"train": [], "intask_valid": [], "posttask_valid": [], "test": []}
 
     class_to_idx = {subclass_: i for subclass_, i in zip(subclasses_wnids, range(998))}
-
-    train_data_path = os.path.join(root, "train")  # 
-    test_data_path = os.path.join(root, "val")
+    #-------------------------------------------------------------------------------------------------------------------
+    # There is to be a folder address for imagenet train and val folders (root is gived by the user, for example: "./data/imagenet")
+    train_data_path = os.path.join(root, "train")  #  the folder is like: imagenet/train
+    test_data_path = os.path.join(root, "val")    #   the folder is like: imagenet/val
     train_data = []
     train_targets = []
     test_data = []
@@ -321,7 +322,6 @@ def _load_iirc_imagenet(root: str = ".", intask_valid_train_ratio: float = 0.04,
     assert set(subclasses_wnids).issubset(set(os.listdir(train_data_path))), \
         f"classes {set(subclasses_wnids) - set(os.listdir(train_data_path))} are not in the training folder"
 
-    #-------------------------------------------------------------------------------------------------------------------
     for subfolder in subclasses_wnids:
         subclass_path = os.path.join(train_data_path, subfolder)
         class_idx = class_to_idx[subfolder]
@@ -414,7 +414,9 @@ def _load_incremental_imagenet(root: str = ".", intask_valid_train_ratio: float 
     datasets = {"train": [], "intask_valid": [], "posttask_valid": [], "test": []}
 
     class_to_idx = {class_: i for class_, i in zip(classes_wnids, range(1000))}
-
+    
+    #-------------------------------------------------------------------------------------------------------------------
+    # There is to be a folder address for imagenet train and val folders (root is gived by the user, for example: "./data/imagenet")
     train_data_path = os.path.join(root, "train")
     test_data_path = os.path.join(root, "val")
     train_data = []
@@ -443,7 +445,7 @@ def _load_incremental_imagenet(root: str = ".", intask_valid_train_ratio: float 
             assert file.split(".")[-1] == "JPEG", f"The samples files {file} are not of the correct format"
             test_data.append(os.path.join(subclass_path, file))
             test_targets.append(class_idx)
-
+    #-------------------------------------------------------------------------------------------------------------------
     train_sort_indices = sorted(range(len(train_data)), key=lambda k: train_data[k])
     train_data = [file for _, file in sorted(zip(train_sort_indices, train_data), key=lambda pair: pair[0])]
     train_targets = [target for _, target in sorted(zip(train_sort_indices, train_targets), key=lambda pair: pair[0])]
