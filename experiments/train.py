@@ -9,7 +9,7 @@ from iirc.utils.utils import print_msg
 import lifelong_methods.utils
 from lifelong_methods.buffer.buffer import TaskDataMergedWithBuffer
 from lifelong_methods.utils import transform_labels_names_to_vector
-from experiments.data.Dataset_cluster import ClusteringDataset, SameClassSampler, SameClassBatcherSampler, DDPSameclassSampler
+from experiments.data.Dataset_cluster import ClusteringDataset, SameClassSampler, SameClassBatcherSampler, DDPClusteringDataset, DDPBaseBatchSampler
 from experiments import utils, metrics
 from iirc.utils.Mysampler import EachClassSampler_Buffer, EachClassBatchSampler_Buffer, SingleClassSampler_Buffer, Support_ClassSampler_Buffer
 import pdb
@@ -337,10 +337,12 @@ def task_train(model, buffer, lifelong_datasets, config, metadata, logbook, dist
    #TODO:---------------------------------------------------------
         if config['use_cluster_dataset'] and  (epoch_cur % config["inter_cluster"] == config["inter_cluster"] - 1) and cur_task_id <= config["end_cluster_task"]:
             if distributed:
-                Cluster_DataSet = ClusteringDataset(task_train_data_with_buffer.task_data, model, K_Cluster=config["K_Cluster"], log_book=logbook)
-                DDPclusterSampler = DDPSameclassSampler(Cluster_DataSet, num_replicas=dist_args["world_size"], rank=rank, batch_size=config['single_batch_size'], epoch=epoch)
-                Cluster_train_loader = data.DataLoader(Cluster_DataSet, num_workers=config["num_workers"], pin_memory=True, batch_sampler=DDPclusterSampler)
+                DDPCluster_DataSet= DDPClusteringDataset(task_train_data_with_buffer.task_data, model, K_Cluster=config["K_Cluster"], log_book=logbook, rank=rank, batchsize=config['single_batch_size'], world_size=dist_args["world_size"])
+                DDPclusterSampler = DDPBaseBatchSampler(DDPCluster_DataSet, num_replicas=dist_args["world_size"], rank=rank, batch_size=config['single_batch_size'], epoch=epoch)
+                Cluster_train_loader = data.DataLoader(DDPCluster_DataSet, num_workers=config["num_workers"], pin_memory=True, batch_sampler=DDPclusterSampler)
+                dist.barrier() #to calculate the time based on the slowest gpu
                 Cluster_epoch_train(model=model, dataloader=Cluster_train_loader, config=config, metadata=metadata, gpu=gpu)
+                print(f'rank {rank} has finished the cluster training')
                 dist.barrier() #to calculate the time based on the slowest gpu
 
             else:
