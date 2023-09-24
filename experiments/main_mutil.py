@@ -229,7 +229,7 @@ def main_worker(gpu, config: dict, dist_args: dict = None):
     if gpu is not None:
     #    torch.cuda.set_device(gpu)
         model.to(device)
-        model.net = torch.nn.parallel.DistributedDataParallel(model.net, device_ids=[gpu], find_unused_parameters=True)
+        model.net = torch.nn.parallel.DistributedDataParallel(model.net, device_ids=[gpu])
     else:
         model.to(config["device"])
 
