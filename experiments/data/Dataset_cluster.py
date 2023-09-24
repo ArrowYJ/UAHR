@@ -170,8 +170,9 @@ class DDPSameclassSampler(torch.utils.data.distributed.DistributedSampler):
         return (len(self.dataset)+self.batch_size-1)//self.batch_size
     
 class DDPBaseSampler(Sampler):
-    def __init__(self, my_indices):
+    def __init__(self, my_indices, bathch_size=128):
         self.my_indices = my_indices
+        self.batch_size = bathch_size
 
     def __iter__(self):
         batch = []
@@ -193,7 +194,7 @@ class DDPBaseSampler(Sampler):
             yield batch
 
     def __len__(self):
-        return len(self.my_indices) 
+        return (len(self.my_indices) + self.batch_size - 1) // self.batch_size
         
 class DDPClusteringDataset(Dataset):
     def __init__(self, dataset, model, K_Cluster, log_book=None, rank=0, batchsize=128, world_size=4):
@@ -220,7 +221,7 @@ class DDPClusteringDataset(Dataset):
 		# Cluster the latent features with the same class, and get the cluster_labels which revise the related self.cluster_labels 
         
         latent_features = []
-        base_sampler = DDPBaseSampler(self.batch_indices)
+        base_sampler = DDPBaseSampler(self.batch_indices, self.batchsize)
         train_loader = data.DataLoader(self.dataset, num_workers=num_workers, pin_memory=True, batch_sampler=base_sampler)
         
         for minibatch in tqdm(train_loader):
@@ -284,7 +285,7 @@ class DDPBaseBatchSampler(torch.utils.data.distributed.DistributedSampler):
             yield batch
 
     def __len__(self):
-        return len(self.dataset)
+        return (len(self.dataset) + self.batch_size - 1) // self.batch_size
 
 
 
