@@ -101,7 +101,7 @@ def epoch_train(model, dataloader, config, metadata, gpu=None, rank=0, epoch_cur
     num_seen_classes = len(model.seen_classes)
     model.net.train()
     minibatch_i = 0
-    for minibatch in tqdm(dataloader):  
+    for minibatch in dataloader:  
         labels_names = list(zip(minibatch[1], minibatch[2]))
         labels = transform_labels_names_to_vector(
             labels_names, num_seen_classes, class_names_to_idx
@@ -152,7 +152,7 @@ def Cluster_epoch_train(model, dataloader, config, metadata, gpu=None):
     model.net.train()
     loss_avg = 0.0
     data_len = 0
-    for minibatch in tqdm(dataloader):  
+    for minibatch in dataloader:  
         labels_names = list(minibatch[2])
         labels = torch.zeros((len(labels_names), config["K_Cluster"]))
         for i in range(len(labels)):

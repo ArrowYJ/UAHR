@@ -33,7 +33,7 @@ class ClusteringDataset(Dataset):
 		# Cluster the latent features with the same class, and get the cluster_labels which revise the related self.cluster_labels 
         latent_features = []
         train_loader = data.DataLoader(self.dataset, batch_size=batchsize, shuffle=False,  num_workers=num_workers, pin_memory=True, drop_last=False)
-        for minibatch in tqdm(train_loader):
+        for minibatch in train_loader:
             img = minibatch[0].cuda()
             label_1 = minibatch[1]
 
@@ -51,7 +51,7 @@ class ClusteringDataset(Dataset):
         latent_features = np.array(latent_features)
         label_log_dict = {}
 
-        for label_name in tqdm(self.cur_tasks):
+        for label_name in self.cur_tasks:
             # get the index of the self.GT_labels is the same as the label_name
             index = np.where(self.GT_labels == label_name)[0]
             # Cluster the latent features with the same class and get the cluster id for each sample
@@ -224,7 +224,7 @@ class DDPClusteringDataset(Dataset):
         base_sampler = DDPBaseSampler(self.batch_indices, self.batchsize)
         train_loader = data.DataLoader(self.dataset, num_workers=num_workers, pin_memory=True, batch_sampler=base_sampler)
         
-        for minibatch in tqdm(train_loader):
+        for minibatch in train_loader:
                 img = minibatch[0].cuda()
                 label_1 = minibatch[1]
                 with torch.no_grad():
@@ -240,7 +240,7 @@ class DDPClusteringDataset(Dataset):
         self.cluster_labels = np.array(self.cluster_labels)
         latent_features = np.array(latent_features)
 
-        for label_name in tqdm(self.cur_tasks):
+        for label_name in self.cur_tasks:
             index = np.where(self.GT_labels == label_name)[0]
             class_index_latent_features = latent_features[index]
             kmeans = KMeans(n_clusters=K_Cluster, random_state=None).fit(class_index_latent_features)
