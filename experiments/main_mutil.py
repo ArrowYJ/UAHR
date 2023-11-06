@@ -385,6 +385,10 @@ if __name__ == '__main__':
     # The Cluster parameters
     parser.add_argument('--use_cluster_dataset', action='store_true',
                         help='use the cluster before training each task regularly')
+    parser.add_argument('--cluster_checkpoint', type=str, default="None")
+    parser.add_argument('--cluster_model', type=str, default="resnet50",
+                        choices=["restnet18", "resnet50", "resnet34",
+                                 "resnet101", "resnet152"])
     parser.add_argument('--K_Cluster', type=int, default=0,
                         help="")
     parser.add_argument('--inter_cluster', type=int, default=10,

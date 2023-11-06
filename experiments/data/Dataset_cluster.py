@@ -33,12 +33,13 @@ class ClusteringDataset(Dataset):
 		# Cluster the latent features with the same class, and get the cluster_labels which revise the related self.cluster_labels 
         latent_features = []
         train_loader = data.DataLoader(self.dataset, batch_size=batchsize, shuffle=False,  num_workers=num_workers, pin_memory=True, drop_last=False)
+        self.model.eval()
         for minibatch in train_loader:
             img = minibatch[0].cuda()
             label_1 = minibatch[1]
 
             with torch.no_grad():
-                _, feat = self.model.forward_net(img)
+                feat = self.model(img)
             latent_features.append(feat.squeeze().tolist())
             self.GT_labels.append(label_1)
             self.cluster_labels.append([-1]*len(label_1))
@@ -223,12 +224,12 @@ class DDPClusteringDataset(Dataset):
         latent_features = []
         base_sampler = DDPBaseSampler(self.batch_indices, self.batchsize)
         train_loader = data.DataLoader(self.dataset, num_workers=num_workers, pin_memory=True, batch_sampler=base_sampler)
-        
+        self.model.eval()
         for minibatch in train_loader:
                 img = minibatch[0].cuda()
                 label_1 = minibatch[1]
                 with torch.no_grad():
-                    _, feat = self.model.forward_net(img)
+                    feat = self.model(img)
                 latent_features.append(feat.squeeze().tolist())
                 self.GT_labels.append(label_1)
                 self.cluster_labels.append([-1]*len(label_1))

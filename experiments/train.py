@@ -5,6 +5,9 @@ import torch.utils.data as data
 import torch.distributed as dist
 from copy import deepcopy
 
+import torchvision.models as models
+import torch.nn as nn
+
 from iirc.utils.utils import print_msg
 import lifelong_methods.utils
 from lifelong_methods.buffer.buffer import TaskDataMergedWithBuffer
@@ -336,8 +339,40 @@ def task_train(model, buffer, lifelong_datasets, config, metadata, logbook, dist
             print('now my sampler is complete')
    #TODO:---------------------------------------------------------
         if config['use_cluster_dataset'] and  (epoch_cur % config["inter_cluster"] == config["inter_cluster"] - 1) and cur_task_id <= config["end_cluster_task"]:
+            checkpoint_file = config["cluster_checkpoint"]
+            
+            if config['cluster_model'] == 'resnet18':
+                if checkpoint_file == "None":
+                    cluster_model = models.resnet18(pretrained=False)
+                    cluster_model = cluster_model.load_state_dict(torch.load(config["cluster_checkpoint"]))
+                else:
+                    cluster_model = models.resnet18(pretrained=True)
+            elif config['cluster_model'] == 'resnet50':
+                if checkpoint_file == "None":
+                    cluster_model = models.resnet50(pretrained=False)
+                    cluster_model = cluster_model.load_state_dict(torch.load(config["cluster_checkpoint"]))
+                else:
+                    cluster_model = models.resnet50(pretrained=True)
+            elif config['cluster_model'] == 'resnet101':
+                if checkpoint_file == "None":
+                    cluster_model = models.resnet101(pretrained=False)
+                    cluster_model = cluster_model.load_state_dict(torch.load(config["cluster_checkpoint"]))
+                else:
+                    cluster_model = models.resnet101(pretrained=True)
+                    
+            elif config['cluster_model'] == 'resnet152':
+                if checkpoint_file == "None":
+                    cluster_model = models.resnet152(pretrained=False)
+                    cluster_model = cluster_model.load_state_dict(torch.load(config["cluster_checkpoint"]))
+                else:
+                    cluster_model = models.resnet152(pretrained=True)
+            else:
+                raise NotImplementedError
+            cluster_model.fc = nn.Identity()
+            cluster_model = cluster_model.to(config["device"])
+            
             if distributed:
-                DDPCluster_DataSet= DDPClusteringDataset(task_train_data_with_buffer.task_data, model, K_Cluster=config["K_Cluster"], log_book=logbook, rank=rank, batchsize=config['single_batch_size'], world_size=dist_args["world_size"])
+                DDPCluster_DataSet= DDPClusteringDataset(task_train_data_with_buffer.task_data, cluster_model, K_Cluster=config["K_Cluster"], log_book=logbook, rank=rank, batchsize=config['single_batch_size'], world_size=dist_args["world_size"])
                 DDPclusterSampler = DDPBaseBatchSampler(DDPCluster_DataSet, num_replicas=dist_args["world_size"], rank=rank, batch_size=config['single_batch_size'], epoch=epoch)
                 Cluster_train_loader = data.DataLoader(DDPCluster_DataSet, num_workers=config["num_workers"], pin_memory=True, batch_sampler=DDPclusterSampler)
                 dist.barrier() #to calculate the time based on the slowest gpu
@@ -346,7 +381,7 @@ def task_train(model, buffer, lifelong_datasets, config, metadata, logbook, dist
                 dist.barrier() #to calculate the time based on the slowest gpu
 
             else:
-                Cluster_DataSet = ClusteringDataset(task_train_data_with_buffer.task_data, model, K_Cluster=config["K_Cluster"], log_book=logbook)
+                Cluster_DataSet = ClusteringDataset(task_train_data_with_buffer.task_data, cluster_model, K_Cluster=config["K_Cluster"], log_book=logbook)
                 Cluster_Sampler = SameClassSampler(Cluster_DataSet)
                 Cluster_BatcherSampler = SameClassBatcherSampler(Cluster_Sampler, batch_size=config["batch_size"], drop_last=True)
                 Cluster_train_loader = data.DataLoader(Cluster_DataSet, num_workers=config["num_workers"], pin_memory=True, batch_sampler=Cluster_BatcherSampler)
