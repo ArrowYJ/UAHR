@@ -470,8 +470,8 @@ class Model(BaseMethod):
         self.label_relationship = final_label_relationship
         self.label_new_father = label_new_father
         if rank == 0:
-            label_log["label_relation"] = f"{self.label_relationship}"
-            utils.log_task(self.cur_task_id, label_log, log_book)
+    #        label_log["label_relation"] = f"{self.label_relationship}"
+    #        utils.log_task(self.cur_task_id, label_log, log_book)
             if distributed:
                 dist.barrier()
         else:

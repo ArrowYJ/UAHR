@@ -377,7 +377,7 @@ def task_train(model, buffer, lifelong_datasets, config, metadata, logbook, dist
                 Cluster_train_loader = data.DataLoader(DDPCluster_DataSet, num_workers=config["num_workers"], pin_memory=True, batch_sampler=DDPclusterSampler)
                 dist.barrier() #to calculate the time based on the slowest gpu
                 Cluster_epoch_train(model=model, dataloader=Cluster_train_loader, config=config, metadata=metadata, gpu=gpu)
-                print(f'rank {rank} has finished the cluster training')
+            #    print(f'rank {rank} has finished the cluster training')
                 dist.barrier() #to calculate the time based on the slowest gpu
 
             else:
@@ -425,7 +425,7 @@ def task_train(model, buffer, lifelong_datasets, config, metadata, logbook, dist
         log_dict[f"elapsed_time"] =  round(end_time - start_time, 2)
 
         if rank == 0:
-            utils.log(epoch, cur_task_id, log_dict, logbook)
+        #    utils.log(epoch, cur_task_id, log_dict, logbook)
             if distributed:
                 dist.barrier()
         #        log_dict["rank"] = rank

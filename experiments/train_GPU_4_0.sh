@@ -2,4 +2,10 @@
 #export OMP_NUM_THREADS=1
 #CUDA_VISIBLE_DEVICES=0,1 python -m torch.distributed.launch  --master_port 12582 --nproc_per_node=2 main_mutil.py  --rbf_dis 0.001 --l_divide 50  --l_margin 0.15 --temperature 2.0  --my_logging './refine'  --use_cluster_dataset --K_Cluster 50 --inter_cluster 7 --m_value 0.50 --n_value 0.10 --end_cluster_task 10 --class_value 0.15 --test_incre 0 --dataset iirc_cifar100 --dataset_path "./data" --epochs_per_task 140 --single_batch_size 128 --seed 100 --logging_path_root "./results" --n_layers 32 --tasks_configuration_id 0 --method New --optimizer momentum --lr 1.0 --lr_gamma 0.1 --reduce_lr_on_plateau --weight_decay 1e-5 --n_memories_per_class 20 --checkpoint_interval 5 # --use_best_model
 
-CUDA_VISIBLE_DEVICES=0,1,2,3  python -m torch.distributed.launch  --master_port 12589 --nproc_per_node=4 main_mutil.py  --dataset_path "./data/imagenet"  --rbf_dis 0.001 --l_divide 30.0  --l_margin 0.15 --temperature 2.0  --my_logging './refine'  --use_cluster_dataset  --cluster_checkpoint "None"  --cluster_model "resnet50" --K_Cluster 60 --inter_cluster 2 --m_value 0.50 --n_value 0.10 --end_cluster_task 3 --class_value 0.10 --test_incre 0 --dataset iirc_imagenet_full --epochs_per_task 100 --single_batch_size 128 --seed 100 --logging_path_root "./results" --n_layers 50 --tasks_configuration_id 0 --method New --optimizer momentum --lr 0.4 --lr_gamma 0.1 --reduce_lr_on_plateau --weight_decay 1e-5 --n_memories_per_class 20 --checkpoint_interval 10 # --use_best_model
+CUDA_VISIBLE_DEVICES=0,1,2,3  python -m torch.distributed.launch  --master_port 12589 --nproc_per_node=4 main_mutil.py \
+ --dataset_path "./data/imagenet"  --rbf_dis 0.001 --l_divide 30.0  --l_margin 0.15 --temperature 2.0  --my_logging './refine' \
+ --use_cluster_dataset  --cluster_checkpoint "None"  --cluster_model "resnet50" --K_Cluster 50 --inter_cluster 17 --m_value 0.50 \
+ --n_value 0.10 --end_cluster_task 3 --class_value 0.10 --test_incre 0 --dataset iirc_imagenet_full --epochs_per_task 100 \
+ --single_batch_size 128 --seed 100 --logging_path_root "./results" --n_layers 50 --tasks_configuration_id 0 --method New \
+ --optimizer momentum --lr 0.4 --lr_gamma 0.1 --reduce_lr_on_plateau --weight_decay 1e-5 --n_memories_per_class 20 \
+ --checkpoint_interval 10 # --use_best_model

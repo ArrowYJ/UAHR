@@ -1,5 +1,19 @@
-此次更新了train.py, main_mutil.py,Dataset_cluster.py, train_GPU_4_0.sh文件
+此次更新了 train_GPU_4_0.sh, train_GPU_4_1.sh, train_GPU_4_2.sh, train_GPU_4_3.sh, train_GPU_4_4.sh, 
+\lifelong_methods\methods\New.py, experiments\train.py 文件
 
+这一次在这5个脚本里，仍需将resnet50的预训练参数地址添加到 --cluster_checkpoint 中。
+
+这一次调参运行：
+
+train_GPU_4_0.sh
+train_GPU_4_1.sh
+train_GPU_4_2.sh
+train_GPU_4_3.sh
+train_GPU_4_4.sh
+
+麻烦师兄了！万分感谢！
+
+----------------------------------------------------------------------------------------------------------------------
 需要下载 resnet50的预训练参数：https://download.pytorch.org/models/resnet50-19c8e357.pth
 
 将下载参数的地址填写到 train_GPU_4_0.sh 文件的 --cluster_checkpoint 参数后即可
