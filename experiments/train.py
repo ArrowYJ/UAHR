@@ -346,26 +346,26 @@ def task_train(model, buffer, lifelong_datasets, config, metadata, logbook, dist
                     cluster_model = models.resnet18(pretrained=True)
                 else:
                     cluster_model = models.resnet18(pretrained=False)
-                    cluster_model = cluster_model.load_state_dict(torch.load(config["cluster_checkpoint"]))   
+                    cluster_model.load_state_dict(torch.load(config["cluster_checkpoint"]))   
             elif config['cluster_model'] == 'resnet50':
                 if checkpoint_file == "None":
                     cluster_model = models.resnet50(pretrained=True)
                 else:
                     cluster_model = models.resnet50(pretrained=False)
-                    cluster_model = cluster_model.load_state_dict(torch.load(config["cluster_checkpoint"]))
+                    cluster_model.load_state_dict(torch.load(config["cluster_checkpoint"]))
             elif config['cluster_model'] == 'resnet101':
                 if checkpoint_file == "None":
                     cluster_model = models.resnet101(pretrained=True)
                 else:
                     cluster_model = models.resnet101(pretrained=False)
-                    cluster_model = cluster_model.load_state_dict(torch.load(config["cluster_checkpoint"]))
+                    cluster_model.load_state_dict(torch.load(config["cluster_checkpoint"]))
                     
             elif config['cluster_model'] == 'resnet152':
                 if checkpoint_file == "None":
                     cluster_model = models.resnet152(pretrained=True)
                 else:
                     cluster_model = models.resnet152(pretrained=False)
-                    cluster_model = cluster_model.load_state_dict(torch.load(config["cluster_checkpoint"]))
+                    cluster_model.load_state_dict(torch.load(config["cluster_checkpoint"]))
             else:
                 raise NotImplementedError
             cluster_model.fc = nn.Identity()
