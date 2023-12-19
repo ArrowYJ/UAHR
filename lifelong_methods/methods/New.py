@@ -46,7 +46,8 @@ class Model(BaseMethod):
         self.label_new_father = None
         # setup losses
         self.bce = nn.BCEWithLogitsLoss(reduction="mean")
-
+        self.cur_epoch = 0
+        
     def cal_rbf_single_without_rbf(self, x, y):
         return ((x - y) ** 2).mean().mul(-1)
 
@@ -99,7 +100,7 @@ class Model(BaseMethod):
         # get the latent feat 
         output, latent_feat = self.forward_net(x)
 
-        cluster_loss = self.loss_ranking(x=latent_feat, y=y, offset1=0)
+        cluster_loss = self.loss_ranking(x=latent_feat, y=y, offset1=0) * 0.2 * (1 - self.my_sigmoid(2))
         no_use_loss = output.mean().mean() - output.mean().mean()
         
         all_loss = cluster_loss + no_use_loss
@@ -385,6 +386,8 @@ class Model(BaseMethod):
         prepare_model_for_task function).
         It copies the old network and freezes it's gradients.
         """ 
+        self.cur_epoch = 0
+        
         distributed = dist_args is not None
         if distributed:
             self.old_net = copy_freeze(self.net.module)
@@ -493,6 +496,12 @@ class Model(BaseMethod):
             y = self.refine_label(distill_model_output[:, :offset1], y[:, :offset2], offset1, self.label_relationship, self.label_new_father, cur_new_output=cur_new_output)
         return y
 
+    def my_sigmoid(self, K=7):
+        return 1 / (1 + np.exp(-(self.cur_task_id - 1) / K))
+    
+    def divide_sigmoid(self, K=10):
+        return 1 - (1 / (1 + np.exp(-K) / 17))
+
     def get_cls_loss(self, output, target, offset1, in_buffer, latent_feat=None, x=None):
         if self.cur_task_id < 1 or in_buffer is None:
             loss_1 = self.bce(output / self.temp, target)
@@ -507,18 +516,23 @@ class Model(BaseMethod):
                     father_index = father_index[0]
                     temp_output_father = torch.sigmoid(output[i, father_index] / self.temp)
                     temp_c_x = torch.sigmoid(output[i, c_x] / self.temp)
+                    
+                    output[i, c_x] = output[i, c_x] * self.my_sigmoid(8) + output[i, father_index] * (1 - self.my_sigmoid(8))
                     if abs(temp_output_father - temp_c_x) > self.class_value * 0.9:
-                        output[i, c_x] = (output[i, c_x] + output[i, father_index]) / 2 - ((abs(temp_output_father - temp_c_x) - self.class_value * 0.9).exp() - 1.0)
-              #      if abs(output[i, mix_before] - output[i, c_x]) > self.class_value:  # doing----------------------
-              #          output[i, c_x] = output[i, c_x] - abs(output[i, mix_before] - output[i, c_x]).mul(-1).exp() * 0.3
-              #      output[i, c_x] = (output[i, c_x] + output[i, father_index]) / 2
+                        output[i, c_x] = output[i, c_x] - ((abs(temp_output_father - temp_c_x) - self.class_value * 0.9).exp() - 1.0) * 2 * (1 - self.my_sigmoid(8))
+                    # output[i, c_x] = (output[i, c_x] + output[i, father_index]) / 2  
+                    if temp_output_father > target[i, father_index]:
+                        target[i, father_index] = temp_output_father
                 
                 else:    # superclass
                     mix_before = torch.max(output[i, :offset1], 0)[1]
                     temp_output_mix = torch.sigmoid(output[i, mix_before] / self.temp)
                     temp_c_x = torch.sigmoid(output[i, c_x] / self.temp)
                     if abs(temp_output_mix - temp_c_x) < self.class_value * 1.1:
-                        output[i, c_x] = output[i, c_x] - ((self.class_value * 1.1 - abs(temp_output_mix - temp_c_x)).exp() - 1.0)
+                        output[i, c_x] = output[i, c_x] - ((self.class_value * 1.1 - abs(temp_output_mix - temp_c_x)).exp() - 1.0) * 2 * (1 - self.my_sigmoid(8))
+                    
+                    if temp_output_mix < target[i, mix_before]:
+                        target[i, mix_before] = temp_output_mix
                 
         loss_1 = self.bce(output / self.temp, target)
         # A distilled from the old net fc. then the output to be the same 
@@ -561,6 +575,7 @@ class Model(BaseMethod):
     #    loss_1 = self.bce(output / self.temperature, target)
         
         loss_2 =  (loss_1.item() * loss_divide) / (loss_divide.item() * self.l_divide + 1)  
+    #    loss_2 = loss_divide * self.divide_sigmoid(self.cur_epoch)
      #   loss_ranking_value = self.loss_ranking(latent_feat, y, offset_1)
     #    loss_3 = loss_ranking_value * (loss_1.item() / (loss_ranking_value.item() * self.l_divide + 1))
         loss = loss_1  + loss_2 #+ loss_3  #+ loss_2# + loss_3 #+ loss_2
@@ -571,7 +586,11 @@ class Model(BaseMethod):
         #    torch.nn.utils.clip_grad_norm_(self.net.parameters(), 5.0)
             self.opt.step()
 
-        predictions = output.ge(0.0)
+        temp_output = torch.sigmoid(output / self.temp)
+        temp_output = temp_output - torch.max(temp_output, 1, keepdim=True)[0] + self.class_value
+        predictions = temp_output.ge(0.0)
+
+     #   predictions = output.ge(0.0)
         return predictions, loss.item()
 
     def forward(self, x: torch.Tensor, return_output=False) -> torch.Tensor:
@@ -593,7 +612,9 @@ class Model(BaseMethod):
             # make the value is between the (max value - self.class_value) and the max value to be positive and the others to be negative
             output = output - torch.max(output, 1, keepdim=True)[0] + self.class_value
         else:
-            output = output_ori
+            output = torch.sigmoid(output_ori / self.temp)
+            output = output - torch.max(output, 1, keepdim=True)[0] + self.class_value
+
         predictions = output.ge(0.0)
         if return_output:
             return predictions, output_ori
@@ -605,6 +626,7 @@ class Model(BaseMethod):
         A method specific function that takes place after training on each epoch (runs from the
         consolidate_epoch_knowledge function)
         """
+        self.cur_epoch = self.cur_epoch + 1
         pass
 
     def consolidate_task_knowledge(self, **kwargs) -> None:

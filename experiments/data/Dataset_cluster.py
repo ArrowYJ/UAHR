@@ -262,6 +262,7 @@ class DDPBaseBatchSampler(torch.utils.data.distributed.DistributedSampler):
         super(DDPBaseBatchSampler, self).__init__(dataset, num_replicas, rank, shuffle)
         self.batch_size = batch_size
         self.epoch = epoch
+        self.dataset = dataset
 
     def __iter__(self):
         # deterministically shuffle based on epoch

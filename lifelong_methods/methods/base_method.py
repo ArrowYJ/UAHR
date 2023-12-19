@@ -51,7 +51,7 @@ class BaseMethod(ABC, nn.Module):
             else:
                 self.net = ResNetCIFAR(num_classes=self.num_classes, num_layers=self.n_layers, relu_last_hidden=False)
         elif 'imagenet' in config["dataset"]:
-            self.net = ResNet(num_classes=self.num_classes, num_layers=self.n_layers)
+            self.net = ResNet(num_classes=self.num_classes, num_layers=self.n_layers, config=config)
         else:
             raise ValueError(f"Unsupported dataset {config['dataset']}")
         if config['n_layers'] not in [20, 32, 44, 56, 110, 50]:

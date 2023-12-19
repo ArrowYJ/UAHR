@@ -1,10 +1,11 @@
 from torchvision import models
 import torch.nn as nn
+import torch
 
 
 # Todo add a relu_last_hidden=False parameter as in ResNetCifar
 class ResNet(nn.Module):
-    def __init__(self, num_classes=10, num_layers=18):
+    def __init__(self, num_classes=10, num_layers=18, config=None):
         super(ResNet, self).__init__()
         self.num_classes = num_classes
         self.num_layers = num_layers
@@ -15,7 +16,8 @@ class ResNet(nn.Module):
         elif num_layers == 34:
             self.model = models.resnet34()
         elif num_layers == 50:
-            self.model = models.resnet50()
+            self.model = models.resnet50(pretrained=False)
+            self.model.load_state_dict(torch.load(config["cluster_checkpoint"]))
         elif num_layers == 101:
             self.model = models.resnet101()
         elif num_layers == 152:
