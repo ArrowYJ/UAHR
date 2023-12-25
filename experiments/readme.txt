@@ -1,4 +1,21 @@
 此次更新了 train_GPU_4_0.sh, train_GPU_4_1.sh, train_GPU_4_2.sh, train_GPU_4_3.sh, train_GPU_4_4.sh, 
+\lifelong_methods\methods\New.py, \experiments\main_mutil.py 文件
+
+这一次在这5个脚本里，仍需将resnet50的预训练参数地址添加到 --cluster_checkpoint 中。
+这一次调参运行：
+
+train_GPU_4_0.sh
+train_GPU_4_1.sh
+train_GPU_4_2.sh
+train_GPU_4_3.sh
+train_GPU_4_4.sh
+
+新增衰减功能，加上消融测试实验，查看效果。    2023/12/26
+
+
+
+----------------------------------------------------------------------------------------------------------------------
+此次更新了 train_GPU_4_0.sh, train_GPU_4_1.sh, train_GPU_4_2.sh, train_GPU_4_3.sh, train_GPU_4_4.sh, 
 \experiments\data\Dataset_cluster.py, experiments\main_stage_0.py, lifelong_methods\methods\base_method.py,
 lifelong_methods\models\resnet.py, lifelong_methods\methods\New.py  文件
 

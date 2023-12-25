@@ -399,7 +399,7 @@ if __name__ == '__main__':
                         help="")
     parser.add_argument('--end_cluster_task', type=int, default=6,
                         help="")
-    parser.add_argument('--class_value', type=float, default=0.15,
+    parser.add_argument('--class_value', type=float, default=-1,
                         help="")
     
     

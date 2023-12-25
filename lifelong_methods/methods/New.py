@@ -503,7 +503,7 @@ class Model(BaseMethod):
         return 1 - (1 / (1 + np.exp(-K) / 17))
 
     def get_cls_loss(self, output, target, offset1, in_buffer, latent_feat=None, x=None):
-        if self.cur_task_id < 1 or in_buffer is None:
+        if self.cur_task_id < 1 or in_buffer is None or self.class_value < 0:
             loss_1 = self.bce(output / self.temp, target)
             return loss_1
 
@@ -585,10 +585,13 @@ class Model(BaseMethod):
             loss.backward()
         #    torch.nn.utils.clip_grad_norm_(self.net.parameters(), 5.0)
             self.opt.step()
-
-        temp_output = torch.sigmoid(output / self.temp)
-        temp_output = temp_output - torch.max(temp_output, 1, keepdim=True)[0] + self.class_value
-        predictions = temp_output.ge(0.0)
+            
+        if self.class_value > 0:
+            temp_output = torch.sigmoid(output / self.temp)
+            temp_output = temp_output - torch.max(temp_output, 1, keepdim=True)[0] + self.class_value
+            predictions = temp_output.ge(0.0)
+        else:
+            predictions = output.ge(0.0)
 
      #   predictions = output.ge(0.0)
         return predictions, loss.item()
@@ -607,14 +610,17 @@ class Model(BaseMethod):
         output_ori, _ = self.forward_net(x)
         output_ori = output_ori[:, :num_seen_classes]
         # make the output to between 0 and 1 by sigmoid
-        if self.cur_task_id >= 1:
-            output = torch.sigmoid(output_ori / self.temp)
-            # make the value is between the (max value - self.class_value) and the max value to be positive and the others to be negative
-            output = output - torch.max(output, 1, keepdim=True)[0] + self.class_value
+        if self.class_value > 0:
+            if self.cur_task_id >= 1:
+                output = torch.sigmoid(output_ori / self.temp)
+                # make the value is between the (max value - self.class_value) and the max value to be positive and the others to be negative
+                output = output - torch.max(output, 1, keepdim=True)[0] + self.class_value
+            else:
+                output = torch.sigmoid(output_ori / self.temp)
+                output = output - torch.max(output, 1, keepdim=True)[0] + self.class_value
         else:
-            output = torch.sigmoid(output_ori / self.temp)
-            output = output - torch.max(output, 1, keepdim=True)[0] + self.class_value
-
+            output = output_ori
+            
         predictions = output.ge(0.0)
         if return_output:
             return predictions, output_ori
@@ -631,6 +637,7 @@ class Model(BaseMethod):
 
     def consolidate_task_knowledge(self, **kwargs) -> None:
         """Takes place after training on each task"""
+        self.class_value = self.class_value * 0.975
         pass
 
 
