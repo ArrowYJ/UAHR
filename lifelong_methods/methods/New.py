@@ -39,6 +39,7 @@ class Model(BaseMethod):
         self.m_value = config['m_value']
         self.n_value = config['n_value']
         self.class_value = config['class_value']
+        self.class_value_decay = config['class_value_decay']
 
     #    self.rbf_dis = config['rbf_dis']
         self.rbf_dis = 1.0
@@ -637,7 +638,7 @@ class Model(BaseMethod):
 
     def consolidate_task_knowledge(self, **kwargs) -> None:
         """Takes place after training on each task"""
-        self.class_value = self.class_value * 0.975
+        self.class_value = self.class_value * self.class_value_decay
         pass
 
 

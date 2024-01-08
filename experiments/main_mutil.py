@@ -401,6 +401,8 @@ if __name__ == '__main__':
                         help="")
     parser.add_argument('--class_value', type=float, default=-1,
                         help="")
+    parser.add_argument('--class_value_decay', type=float, default=0.975,
+                        help="")
     
     
     # The buffer parameters
